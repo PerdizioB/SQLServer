@@ -1,5 +1,6 @@
 /*
-Essa parte é para poder pegar o valor do custo da sub arvore e calcular o custo de criação do indice usando o hipotético
+Essa parte é para poder pegar o valor do custo da sub arvore
+e calcular o custo de criação do indice usando o hipotético
 
 */
 DBCC AUTOPILOT(0, 1, 391672443,7)
@@ -23,7 +24,6 @@ GROUP BY l_returnflag,
          l_linestatus
 ORDER BY l_returnflag,
          l_linestatus
-	--	 select* from sys.indexes where is_hypothetical=1
 GO 
 SET AUTOPILOT OFF 
 
