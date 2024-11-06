@@ -12,4 +12,30 @@ This project was made using SQL 2019.  For more details, see the official [SQL](
 
  # Configuring Protégé
  To use the SWRL rules it is necessary to install the Ontop plugin in Protege . For more details, see the official [Ontop](https://ontop-vkg.org/tutorial/basic/setup.html) documentation.
+
+ # Step by step
+1. The query used for analysis [queryHypotheticalql.sql](https://github.com/PerdizioB/SQLServer/blob/main/QueryHypotheticalql.sql)
+2. [Script.sql](https://github.com/PerdizioB/SQLServer/blob/main/subtreeIndexCost.sql) get the cost of the subtree using the hypothetical index
+- Read the xml
+- Get the cost value of the subtree  
+- Gets the name of the table that uses the index
+- Get the index name and index id
+- Insert the information HYPCOST
+3. Procedure [dbo].[cosIndexCreation](https://github.com/PerdizioB/SQLServer/blob/main/costIndexCreation.sql) this procedure calculates the cost of creating an index.
+ - Composite index with 2 attributes of type float and type Integer.
+ - Interger Data Type: 4 bytes
+ - Float  Data Type: 17 bytes
+ - Header: 20 bytes (SQL) *96
+<br> **Mathematical formula:**
+<br>[ 4 (array pairs) * 1 (attribute)]+[4 (occupied spaces)]+2 (special space estimate)=10
+<br>FillFactor: 70% (SQL)
+<br>Each Page: 8192 bytes
+<br>100%-30%=70%
+<br>8192-30% (Fillfactor= 70%) = 2457
+<br>2457-96 (Header)=2361 Space to occupy by the index.
+<br>2361/10=136.1 (pages)
+<br>6001215(Tuple) /136.1=45.463(pages)
+
+
+ 
  
