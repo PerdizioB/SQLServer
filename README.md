@@ -37,56 +37,43 @@ Summary of What This Script Does:
 <br>2361/10=136.1 (pages)
 <br>6001215(Tuple) /136.1=45.463(pages)
 
-Steps Performed in the Procedure:
-Create Temporary Table: A temporary table #TB_MAX is created to store the size of each data type for the columns being indexed. The size is stored as a FLOAT.
+# cosIndexCreation Stored Procedure
 
-Create table #TB_MAX(tamanho FLOAT)
-Set Initial Values:
+## Overview
 
-@spaceIndex: Set to 5715, representing the available space in bytes for the index after accounting for the page header.
-@tuple: This is the number of rows in the table (using a SELECT COUNT(*) query on the lineitem table). The procedure assumes the table being indexed is lineitem, although it takes a parameter for other tables.
+The `cosIndexCreation` stored procedure calculates the estimated cost of creating an index on a table in SQL Server. It supports both simple and composite indexes and determines the number of pages that the index will occupy based on the data type of the columns, fill factor, and the number of tuples (rows) in the table.
 
-set @spaceIndex=5715
-set @tuple= (select count(*) from lineitem)
-Declare Cursor: A cursor (db_cursor) is declared to iterate over the data types of the columns specified in @coluna. It retrieves the DATA_TYPE from the INFORMATION_SCHEMA.COLUMNS system view.
+This procedure is useful for database administrators who need to estimate the disk space requirements before creating indexes on large tables.
 
+## Procedure Logic
 
-DECLARE db_cursor CURSOR FOR
-SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE TABLE_NAME = @tabela and column_name in (@coluna)
-Cursor Logic:
+- **Input Parameters**:
+  - `@coluna`: The column(s) on which the index is to be created. This can be a single column or a composite index with multiple columns.
+  - `@tabela`: The name of the table where the index will be created.
 
-For each column being indexed, the procedure fetches the DATA_TYPE of the column.
-It then retrieves the maximum length (max_length) of that data type from the sys.types system table, stores the result in a variable @soma, and inserts this value into the #TB_MAX temporary table.
+- **Steps**:
+  - Creates a temporary table to store the size of each column's data type.
+  - Iterates over each column specified in the `@coluna` parameter to calculate the data type size using a cursor.
+  - Computes the number of pages required to store the index, taking into account SQL Server's page size (8192 bytes), the fill factor (70%), and available space after accounting for page headers.
+  - Provides an estimate of the number of pages the index will occupy.
 
-SELECT @soma=(select  max_length FROM sys.types where name= @cursor)
-INSERT INTO #TB_MAX values (@soma)
-Index Space Calculation: After iterating through the columns, the procedure calculates the number of pages occupied by the index. The formula involves:
+## Formulae for Estimation
 
-Summing the sizes of the data types (from the #TB_MAX table).
-Dividing the total space available for the index by the sum of the data type sizes, then multiplying by 2 (for reasons likely related to how the index data is stored).
-Finally, dividing the total number of rows (@tuple) by the result of the previous division to determine the number of pages needed to store the index.
+- **Composite Index**:
+  - Data types are considered (e.g., `Integer` = 4 bytes, `Float` = 17 bytes).
+  - Fill Factor: 70%.
+  - Page size: 8192 bytes with headers subtracted (96 bytes).
+  - Formula used: 
+    ```
+    [data_type_size * column_count + occupied_spaces] / fill_factor
+    ```
 
-select  @tuple/(select @spaceIndex/(SUM(tamanho)*2) as Tamanho from #TB_MAX)  as PaginasOcupadas
-Drop Temporary Table: After the calculation, the temporary table #TB_MAX is dropped to clean up.
+- **Simple Index**:
+  - Similar to composite indexes but applied to a single column with simpler calculations.
 
+## Example Usage
 
-drop table #TB_MAX
-Formulae Used:
-For composite indexes (indexes on multiple columns):
+To execute the procedure and calculate the index creation cost for a column in a table, use the following command in SQL Server:
 
-The formula takes into account the sizes of the different column data types (like Integer and Float) and calculates the space they will occupy on a page.
-The Fill Factor (70% in this case) defines how much of a page is allowed to be filled before a new page is used.
-Available space for the index is reduced by the page header (20 bytes), and calculations proceed based on that available space.
-For simple indexes (indexes on a single column):
-
-A simpler calculation is used based on the single column's data type size (like 4 bytes for Integer), and the space available on the page after accounting for headers and fill factor.
-Purpose:
-The procedure provides an estimate of how many pages will be required to store the index based on:
-
-The size of the data types for the columns being indexed.
-The number of rows in the table.
-The space available on each page after accounting for headers and the fill factor.
-This is helpful for database administrators to understand the impact of creating an index in terms of disk space and efficiency, especially for large tables.
- 
- 
+```sql
+EXEC [dbo].[cosIndexCreation] 'l_extendedprice', 'lineitem';
