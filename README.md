@@ -15,7 +15,8 @@ This project was made using SQL 2019.  For more details, see the official [SQL](
 
  # Step by step
 1. The query used for analysis [queryHypotheticalql.sql](https://github.com/PerdizioB/SQLServer/blob/main/QueryHypotheticalql.sql)
-2. [Script.sql](https://github.com/PerdizioB/SQLServer/blob/main/subtreeIndexCost.sql) get the cost of the subtree using the hypothetical index
+ "The query calculates the total revenue (considering the price after discount) generated from orders placed by customers in the "BUILDING" market segment, filtering orders and items based on specific dates. The result is presented with the highest revenue at the top, and in case of a tie, it is sorted by the order date"
+3. [Script.sql](https://github.com/PerdizioB/SQLServer/blob/main/subtreeIndexCost.sql) get the cost of the subtree using the hypothetical index
 - Read the xml
 - Get the cost value of the subtree  
 - Gets the name of the table that uses the index
